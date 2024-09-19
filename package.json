@@ -1,0 +1,11 @@
+{
+  "name": "group_bse24-17be",
+  "version": "1.0.0",
+  "description": "Back end",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Group_BSE-17",
+  "license": "ISC"
+}
