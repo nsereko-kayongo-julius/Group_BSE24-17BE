@@ -1,6 +1,6 @@
-# RESTful API Node Express Mongoose Example
+# RESTful API BLOG WEBSITE
 
-The project builds RESTful APIs using Node.js, Express and Mongoose, ...
+The project builds RESTful APIs for the Blog website using Node.js, Express and Mongoose, ...
 
 ## Manual Installation
 
@@ -62,7 +62,7 @@ PORT = # default 666
 
 ```
 
-src\
+GROUP_BSE24-17BE\
  |--config\         # Environment variables and configuration
  |--controllers\    # Controllers
  |--models\         # Mongoose models
