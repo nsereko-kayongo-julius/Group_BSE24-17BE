@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
-
+const blogRoutes = require("./routes/blogRoutes"); // Blog routes
 const authRoutes = require("./routes/authRoutes"); // Auth routes
 const passportConfig = require("./config/passportConfig"); // Passport configuration
 
@@ -25,8 +25,13 @@ app.use(
 // Passport config
 passportConfig(app);
 
+// Serve static files for uploads
+app.use('/uploads', express.static('uploads'));
+
+
 // Routes
 app.use("/", authRoutes);
+app.use("/blog", blogRoutes);
 
 // Connect to MongoDB and start the server
 mongoose
