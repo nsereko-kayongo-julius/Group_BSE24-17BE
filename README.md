@@ -67,7 +67,6 @@ GROUP_BSE24-17BE\
  |--controllers\    # Controllers
  |--models\         # Mongoose models
  |--routes\         # Routes
- |--services\       # Business logic
  |--index.js        # App entry point
 ```
 
