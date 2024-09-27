@@ -14,7 +14,18 @@ const app = express();
 // Middleware to parse request body
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
+
+// Update the CORS configuration to include your frontend URL
+const allowedOrigins = [
+  "http://localhost:5173",
+  " https://master--bse17blogapp.netlify.app/",
+];
+app.use(
+  cors({
+    origin: allowedOrigins, // Replace this with your actual frontend domain
+    credentials: true, // Allow credentials (cookies, session, etc.)
+  })
+);
 
 // Session middleware
 app.use(
