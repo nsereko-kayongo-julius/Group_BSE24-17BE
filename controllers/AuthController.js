@@ -1,7 +1,7 @@
 const passport = require("passport");
 const User = require("../models/users");
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" }).single("profilePicture");
+const upload = multer({ dest: "uploads/users" }).single("profilePicture");
 
 exports.registerUser = (req, res) => {
   upload(req, res, function (err) {

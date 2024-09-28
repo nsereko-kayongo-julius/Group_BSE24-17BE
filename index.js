@@ -45,7 +45,7 @@ app.use("/uploads", express.static("uploads"));
 // Routes
 app.use("/", authRoutes);
 app.use("/blog", blogRoutes);
-app.use("/user", userRoutes);
+app.use("/profile", userRoutes);
 
 // Connect to MongoDB and start the server
 mongoose

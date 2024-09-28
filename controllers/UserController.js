@@ -1,70 +1,82 @@
 const User = require("../models/users");
 const multer = require("multer");
-const path = require("path");
 
-// Reuse multer storage configuration for uploading new profile picture
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/user_images/"); // Directory for user images
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname); // Ensure unique filenames
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // Max file size: 2MB
-  fileFilter: function (req, file, cb) {
-    const fileTypes = /jpeg|jpg|png/;
-    const extname = fileTypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
-    const mimetype = fileTypes.test(file.mimetype);
-
-    if (extname && mimetype) {
-      return cb(null, true);
-    } else {
-      cb(new Error("Only jpg and png images are allowed"));
-    }
-  },
-}).single("profilePicture");
+// Configure multer for file uploads
+const upload = multer({ dest: "uploads/users/" }).single("profilePicture");
 
 // Update user profile
 exports.updateUserProfile = async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Please log in to update your profile" });
+  }
+
   upload(req, res, async function (err) {
     if (err) {
       return res
-        .status(400)
-        .json({ message: "Error uploading file", error: err.message });
+        .status(500)
+        .json({ message: "Error uploading file", error: err });
     }
 
     const { username, email } = req.body;
-    const profilePicture = req.file ? req.file.path : "";
+    const profilePicture = req.file ? req.file.path : req.user.profilePicture;
 
     try {
-      // Find the logged-in user by their ID (assuming user is logged in and req.user contains their info)
-      const user = await User.findById(req.user._id); // Use async/await here instead of callback
+      // Find the authenticated user by ID and update their information
+      const user = await User.findById(req.user._id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Update fields
+      // Update user details
       user.username = username || user.username;
       user.email = email || user.email;
-      if (profilePicture) {
-        user.profilePicture = profilePicture; // Update only if new image is uploaded
-      }
+      user.profilePicture = profilePicture || user.profilePicture;
 
-      // Save updated user profile
-      const updatedUser = await user.save(); // Save the user and return the updated data
-      res
+      // Save the updated user profile
+      await user.save();
+      return res
         .status(200)
-        .json({ message: "Profile updated successfully", user: updatedUser });
-    } catch (error) {
-      res
+        .json({ message: "Profile updated successfully", user });
+    } catch (err) {
+      return res
         .status(500)
-        .json({ message: "Error updating profile", error: error.message });
+        .json({ message: "Error updating profile", error: err });
     }
   });
+};
+
+// Change password
+exports.changePassword = async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Please log in to change password" });
+  }
+
+  const { oldPassword, newPassword } = req.body;
+
+  try {
+    // Find the authenticated user by ID
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Use Passport's setPassword method to update the password
+    user.changePassword(oldPassword, newPassword, (err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ message: "Error changing password", error: err });
+      }
+
+      return res.status(200).json({ message: "Password changed successfully" });
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error changing password", error: err });
+  }
 };

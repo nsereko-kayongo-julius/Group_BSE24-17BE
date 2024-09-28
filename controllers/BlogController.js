@@ -2,8 +2,6 @@ const Blog = require("../models/blog");
 const multer = require("multer");
 const path = require("path");
 
-
-
 // Setup for Multer to handle file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -29,7 +27,6 @@ const upload = multer({
     }
   },
 }).single("coverImage");
-
 
 // CREATE: Create a new blog post
 exports.createBlog = (req, res) => {
@@ -69,7 +66,6 @@ exports.createBlog = (req, res) => {
       );
   });
 };
-
 
 // READ: Get all blog posts
 exports.getAllBlogs = (req, res) => {
@@ -111,11 +107,9 @@ exports.updateBlog = (req, res) => {
 
       // Check if the authenticated user is the author
       if (blog.author.toString() !== req.user._id.toString()) {
-        return res
-          .status(403)
-          .json({
-            message: "Forbidden: You are not allowed to edit this blog",
-          });
+        return res.status(403).json({
+          message: "Forbidden: You are not allowed to edit this blog",
+        });
       }
 
       // Proceed with the update
@@ -149,7 +143,6 @@ exports.updateBlog = (req, res) => {
       res.status(400).json({ message: "Error updating blog", error })
     );
 };
-
 
 // DELETE: Delete a blog post by ID
 exports.deleteBlog = (req, res) => {
