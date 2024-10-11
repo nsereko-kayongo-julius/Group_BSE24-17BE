@@ -5,6 +5,9 @@ const blogController = require("../controllers/BlogController");
 // Create blog (protected)
 router.post("/create", blogController.createBlog);
 
+// get my blogs
+router.get("/my-blogs", blogController.getMyBlogs);
+
 // Read all blogs (public)
 router.get("/", blogController.getAllBlogs);
 

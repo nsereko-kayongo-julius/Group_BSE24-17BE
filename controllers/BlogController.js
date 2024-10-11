@@ -70,7 +70,7 @@ exports.createBlog = (req, res) => {
 // READ: Get all blog posts
 exports.getAllBlogs = (req, res) => {
   Blog.find()
-    .populate("author", "name email")
+    .populate("author", "username email profilePicture")
     .sort({ createdAt: -1 })
     .then((blogs) => res.status(200).json(blogs))
     .catch((error) =>
@@ -79,9 +79,15 @@ exports.getAllBlogs = (req, res) => {
 };
 //
 exports.getBlogById = (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Please log in to update the blog" });
+  }
+
   const blogId = req.params.id;
   Blog.findById(blogId)
-    .populate("author", "name email")
+    .populate("author", "username email profilePicture ")
     .then((blog) => {
       if (!blog) return res.status(404).json({ message: "Blog not found" });
       res.status(200).json(blog);
@@ -155,5 +161,20 @@ exports.deleteBlog = (req, res) => {
     })
     .catch((error) =>
       res.status(400).json({ message: "Error deleting blog", error })
+    );
+};
+
+// READ: Get all blog posts for the logged-in user
+exports.getMyBlogs = (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized: Please log in" });
+  }
+
+  Blog.find({ author: req.user._id })
+    .populate("author", "username email profilePicture")
+    .sort({ createdAt: -1 })
+    .then((blogs) => res.status(200).json(blogs))
+    .catch((error) =>
+      res.status(400).json({ message: "Error fetching user's blogs", error })
     );
 };
