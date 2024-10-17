@@ -18,6 +18,6 @@ router.get("/:id", blogController.getBlogById);
 router.put("/:id", blogController.updateBlog);
 
 // Delete blog (protected)
-router.delete("/:id", blogController.deleteBlog);
+router.delete("/delete/:id", blogController.deleteBlog);
 
 module.exports = router;

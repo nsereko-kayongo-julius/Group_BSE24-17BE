@@ -98,7 +98,7 @@ exports.getBlogById = (req, res) => {
 };
 
 // UPDATE: Update a blog post by ID
-exports.updateBlog = (req, res) => {
+exports.updateBlog = async (req, res) => {
   if (!req.isAuthenticated()) {
     return res
       .status(401)
@@ -107,47 +107,50 @@ exports.updateBlog = (req, res) => {
 
   const blogId = req.params.id;
 
-  Blog.findById(blogId)
-    .then((blog) => {
-      if (!blog) return res.status(404).json({ message: "Blog not found" });
+  try {
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
 
-      // Check if the authenticated user is the author
-      if (blog.author.toString() !== req.user._id.toString()) {
-        return res.status(403).json({
-          message: "Forbidden: You are not allowed to edit this blog",
-        });
+    // Check if the authenticated user is the author
+    if (blog.author.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Forbidden: You are not allowed to edit this blog" });
+    }
+
+    // Proceed with the file upload
+    upload(req, res, async (err) => {
+      if (err) {
+        return res
+          .status(400)
+          .json({ message: "Error uploading image", error: err.message });
       }
 
-      // Proceed with the update
-      upload(req, res, (err) => {
-        if (err) {
-          return res
-            .status(400)
-            .json({ message: "Error uploading image", error: err.message });
-        }
+      const { title, summary, body, category, tags } = req.body;
+      const coverImage = req.file ? req.file.path : blog.coverImage;
 
-        const { title, summary, body, category, tags } = req.body;
-        const coverImage = req.file ? req.file.path : "";
+      // Update blog fields
+      blog.title = title || blog.title;
+      blog.summary = summary || blog.summary;
+      blog.body = body || blog.body;
+      blog.category = category || blog.category;
+      blog.tags = tags ? tags.split(",") : blog.tags;
+      blog.coverImage = coverImage;
 
-        blog.title = title || blog.title;
-        blog.summary = summary || blog.summary;
-        blog.body = body || blog.body;
-        blog.category = category || blog.category;
-        blog.tags = tags ? tags.split(",") : blog.tags;
-        if (coverImage) blog.coverImage = coverImage;
-
-        return blog.save();
-      })
-        .then(() =>
-          res.status(200).json({ message: "Blog updated successfully" })
-        )
-        .catch((error) =>
-          res.status(400).json({ message: "Error updating blog", error })
-        );
-    })
-    .catch((error) =>
-      res.status(400).json({ message: "Error updating blog", error })
-    );
+      try {
+        await blog.save();
+        res.status(200).json({ message: "Blog updated successfully", blog });
+      } catch (saveError) {
+        res
+          .status(400)
+          .json({ message: "Error saving blog", error: saveError });
+      }
+    });
+  } catch (findError) {
+    res.status(400).json({ message: "Error updating blog", error: findError });
+  }
 };
 
 // DELETE: Delete a blog post by ID
