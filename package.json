@@ -4,7 +4,7 @@
   "description": "Back end",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha tests/**/*.test.js"
   },
   "author": "Group_BSE-17",
   "license": "ISC",
