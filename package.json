@@ -4,7 +4,7 @@
   "description": "Back end",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "Group_BSE-17",
   "license": "ISC",
