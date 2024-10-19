@@ -1,5 +1,7 @@
 global:
   scrape_interval: 60s
+  external_labels:
+    origin_prometheus: prometheus01
 remote_write:
   - url: https://localhost:12345/agent/api/v1/metrics/instance/hosted-prometheus/write
 scrape_configs:
