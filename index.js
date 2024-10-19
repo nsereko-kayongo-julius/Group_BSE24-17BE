@@ -98,6 +98,11 @@ app.use(
   })
 );
 
+// Trust proxy in production for secure cookies
+if (app.get("env") === "production") {
+  app.set("trust proxy", 1);
+}
+
 // Passport config
 passportConfig(app);
 
