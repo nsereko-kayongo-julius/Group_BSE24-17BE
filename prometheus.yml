@@ -12,9 +12,4 @@ scrape_configs:global:
 scrape_configs:
   - job_name: "nodejs_app"
     static_configs:
-      - targets: ["localhost:4040"] # Adjust to the port your app runs on
-
-
-  - job_name: node
-    static_configs:
       - targets: ["localhost:4040"]
