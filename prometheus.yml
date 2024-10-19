@@ -1,8 +1,10 @@
 global:
   scrape_interval: 60s
-remote_write:
-  - url: https://localhost:12345/agent/api/v1/metrics/instance/hosted-prometheus/write
+
 scrape_configs:
-  - job_name: node
+  - job_name: nodejs_app
     static_configs:
-      - targets: ["localhost:9090"]
+      - targets: ["localhost:4040"]
+
+remote_write:
+  - url: "https://localhost:12345/agent/api/v1/metrics/instance/hosted-prometheus/write"
