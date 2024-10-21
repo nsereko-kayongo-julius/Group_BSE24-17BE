@@ -76,7 +76,7 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:5173",
   "https://master--bse17blogapp.netlify.app/",
-  "https://bse17blogapp.netlify.app/",
+  "https://bse17blogapp.netlify.app",
 ];
 app.use(
   cors({
