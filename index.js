@@ -89,12 +89,8 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET, // use a strong secret key
     resave: false, // don't save session if unmodified
-    saveUninitialized: false, // don't create a session until something stored
-    cookie: {
-      secure: false,
-      httpOnly: true, // Prevent client-side JS from accessing the cookie
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week expiration
-    },
+    saveUninitialized: true, // don't create a session until something stored
+    cookie: {},
   })
 );
 
