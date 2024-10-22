@@ -75,7 +75,6 @@ app.use(express.json());
 // Update the CORS configuration to include your frontend URL
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://master--bse17blogapp.netlify.app/",
   "https://bse17blogapp.netlify.app",
 ];
 app.use(
@@ -92,7 +91,7 @@ app.use(
     resave: false, // don't save session if unmodified
     saveUninitialized: false, // don't create a session until something stored
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      secure: false,
       httpOnly: true, // Prevent client-side JS from accessing the cookie
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week expiration
     },
