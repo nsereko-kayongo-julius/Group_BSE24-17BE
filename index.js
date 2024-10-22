@@ -77,6 +77,20 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://bse17blogapp.netlify.app",
 ];
+
+var sess = {
+  secret: process.env.SESSION_SECRET,
+  cookie: {},
+  resave: false,
+};
+
+if (app.get("env") === "production") {
+  app.set("trust proxy", 1);
+  sess.cookie.secure = true;
+}
+
+app.use(session(sess));
+
 app.use(
   cors({
     origin: allowedOrigins,
@@ -85,14 +99,14 @@ app.use(
 );
 
 // Session middleware
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET, // use a strong secret key
-    resave: false, // don't save session if unmodified
-    saveUninitialized: true, // don't create a session until something stored
-    cookie: {},
-  })
-);
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET, // use a strong secret key
+//     resave: false, // don't save session if unmodified
+//     saveUninitialized: true, // don't create a session until something stored
+//     cookie: {},
+//   })
+// );
 
 // Trust proxy in production for secure cookies
 if (app.get("env") === "production") {

@@ -28,3 +28,93 @@ jobs:
           service-id: ${{ secrets.MY_RENDER_SERVICE_ID }}
           api-key: ${{ secrets.MY_RENDER_API_KEY }}
           wait-for-success: true
+
+  monitoring:
+    needs: [build, deploy-production]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Prometheus and Grafana
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y prometheus grafana
+
+      - name: Start Prometheus and Grafana
+        run: |
+          sudo systemctl start prometheus
+          sudo systemctl enable prometheus
+
+          sudo systemctl start grafana-server
+          sudo systemctl enable grafana-server
+
+      - name: Configure Prometheus for metrics collection
+        run: |
+          echo "Setting up Prometheus"
+          echo "Setting up scraping targets for Prometheus"
+          sudo bash -c 'cat <<EOF > /etc/prometheus/prometheus.yml
+          global:
+            scrape_interval: 15s
+
+          scrape_configs:
+            - job_name: "react-app"
+              static_configs:
+                - targets: ["localhost:3000"]  # Backend metrics or middleware handling React app
+          EOF'
+          sudo systemctl restart prometheus
+
+      - name: Configure Loki for logs
+        run: |
+          # Install Loki and configure it for log collection
+          echo "Setting up Loki"
+          sudo apt-get install -y loki
+          sudo bash -c 'cat <<EOF > /etc/loki/local-config.yaml
+          auth_enabled: false
+
+          server:
+            http_listen_port: 3100
+
+          ingester:
+            lifecycler:
+              ring:
+                kvstore:
+                  store: inmemory
+              final_sleep: 0s
+            chunk_idle_period: 5m
+            max_chunk_age: 1h
+            chunk_target_size: 1048576
+            chunk_retain_period: 30s
+            max_transfer_retries: 0
+
+          schema_config:
+            configs:
+              - from: 2020-10-24
+                store: boltdb-shipper
+                object_store: filesystem
+                schema: v11
+                index:
+                  prefix: index_
+                  period: 168h
+          EOF'
+          sudo systemctl restart loki
+
+      - name: Configure Grafana for monitoring
+        run: |
+          echo "Configuring Grafana to use Prometheus and Loki"
+          curl -X POST -u admin:admin 'http://localhost:3000/api/datasources' -H 'Content-Type: application/json' -d '{
+            "name": "Prometheus",
+            "type": "prometheus",
+            "access": "proxy",
+            "url": "http://localhost:9090",
+            "isDefault": true
+          }'
+          curl -X POST -u admin:admin 'http://localhost:3000/api/datasources' -H 'Content-Type: application/json' -d '{
+            "name": "Loki",
+            "type": "loki",
+            "access": "proxy",
+            "url": "http://localhost:3100"
+          }'
+
+      - name: Monitor Application
+        run: |
+          echo "Grafana is configured. Access it on http://localhost:3000"
+          echo "Monitoring application performance and logs using Prometheus and Loki."
