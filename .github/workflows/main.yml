@@ -30,7 +30,7 @@ jobs:
           wait-for-success: true
 
   monitoring:
-    needs: [build, deploy-production]
+    needs: [build]
     runs-on: ubuntu-latest
 
     steps:
