@@ -63,6 +63,19 @@ jobs:
           sudo systemctl start grafana-server
           sudo systemctl enable grafana-server
 
+          
+      - name: Wait for Grafana to be reachable
+        run: |
+          echo "Waiting for Grafana to be reachable..."
+          until curl -s http://localhost:3000 > /dev/null; do
+            echo "Grafana is not up yet, waiting..."
+            sleep 5
+          done
+          echo "Grafana is up!"
+
+
+  
+
       - name: Configure Prometheus for metrics collection
         run: |
           echo "Setting up Prometheus"
