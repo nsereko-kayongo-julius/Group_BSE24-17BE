@@ -46,8 +46,9 @@ jobs:
           # Add Prometheus repository
           echo "deb http://packages.grafana.com/oss/deb stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
           
-          # Add Grafana repository key
+          # Add Grafana repository key correctly to keyring
           sudo wget -q -O /usr/share/keyrings/grafana-archive-keyring.gpg https://packages.grafana.com/gpg.key
+          echo "deb [signed-by=/usr/share/keyrings/grafana-archive-keyring.gpg] https://packages.grafana.com/oss/deb stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
           sudo apt-get update
 
       - name: Install Prometheus and Grafana
