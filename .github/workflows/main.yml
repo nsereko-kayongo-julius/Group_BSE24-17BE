@@ -21,8 +21,30 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+  test:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Run tests
         run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Deploy to production
         uses: johnbeynon/render-deploy-action@v0.0.8
@@ -32,9 +54,8 @@ jobs:
           wait-for-success: true
 
   monitoring:
-    needs: [build]
+    needs: [build, deploy]
     runs-on: ubuntu-latest
-
     steps:
       - name: Install dependencies for Prometheus and Grafana
         run: |
@@ -63,7 +84,6 @@ jobs:
           sudo systemctl start grafana-server
           sudo systemctl enable grafana-server
 
-          
       - name: Wait for Grafana to be reachable
         run: |
           echo "Waiting for Grafana to be reachable..."
@@ -72,9 +92,6 @@ jobs:
             sleep 5
           done
           echo "Grafana is up!"
-
-
-  
 
       - name: Configure Prometheus for metrics collection
         run: |
