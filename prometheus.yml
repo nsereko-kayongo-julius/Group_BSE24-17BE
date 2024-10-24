@@ -1,10 +1,13 @@
 global:
   scrape_interval: 60s
 
-scrape_configs:
-  - job_name: nodejs_app
-    static_configs:
-      - targets: ["localhost:4040"]
-
 remote_write:
-  - url: "https://localhost:12345/agent/api/v1/metrics/instance/hosted-prometheus/write"
+  - url: https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom/push
+    basic_auth:
+      username: ${{ secrets.USERNAME }}
+      password: ${{ secrets.PASSWORD }}
+
+scrape_configs:
+  - job_name: nodejs-app
+    static_configs:
+      - targets: ["https://group-bse24-17be.onrender.com"]
