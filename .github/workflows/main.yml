@@ -84,3 +84,19 @@ jobs:
           api-key: ${{ secrets.MY_RENDER_API_KEY }}
           wait-for-success: true
           version-id: previous # This assumes a rollback mechanism using a previous deployment ID or commit hash
+  
+  monitor:
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    steps:
+      - name: Configure Prometheus remote_write to Grafana Cloud
+        run: |
+          echo 'remote_write:
+            - url: https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom/push
+              basic_auth:
+                username: ${{ secrets.USERNAME }}
+                password: ${{ secrets.PASSWORD }}
+            scrape_configs:
+              - job_name: nodejs-app
+                static_configs:
+                  - targets: ["https://group-bse24-17be.onrender.com"]' > prometheus.yml
