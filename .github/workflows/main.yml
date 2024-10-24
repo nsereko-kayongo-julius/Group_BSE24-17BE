@@ -18,6 +18,14 @@ jobs:
         with:
           node-version: "16"
 
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: npm install
 
@@ -32,6 +40,14 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "16"
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm install
@@ -53,73 +69,18 @@ jobs:
           api-key: ${{ secrets.MY_RENDER_API_KEY }}
           wait-for-success: true
 
-  monitoring:
-    needs: [build, deploy]
+  rollback:
     runs-on: ubuntu-latest
+    if: failure()
+    needs: [deploy]
     steps:
-      - name: Install dependencies for Prometheus and Grafana
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common wget apt-transport-https gnupg
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Add Prometheus and Grafana Repositories
-        run: |
-          # Add Grafana public key using curl
-          curl https://packages.grafana.com/gpg.key | sudo apt-key add -
-
-          # Add Prometheus repository
-          echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
-
-          sudo apt-get update
-
-      - name: Install Prometheus and Grafana
-        run: |
-          sudo apt-get install -y prometheus grafana
-
-      - name: Start Prometheus and Grafana
-        run: |
-          sudo systemctl start prometheus
-          sudo systemctl enable prometheus
-
-          sudo systemctl start grafana-server
-          sudo systemctl enable grafana-server
-
-      - name: Wait for Grafana to be reachable
-        run: |
-          echo "Waiting for Grafana to be reachable..."
-          until curl -s http://localhost:3000 > /dev/null; do
-            echo "Grafana is not up yet, waiting..."
-            sleep 5
-          done
-          echo "Grafana is up!"
-
-      - name: Configure Prometheus for metrics collection
-        run: |
-          echo "Setting up Prometheus"
-          echo "Setting up scraping targets for Prometheus"
-          sudo bash -c 'cat <<EOF > /etc/prometheus/prometheus.yml
-          global:
-            scrape_interval: 15s
-
-          scrape_configs:
-            - job_name: "nodejs-app"
-              static_configs:
-                - targets: ["localhost:4040/metrics"]  
-          EOF'
-          sudo systemctl restart prometheus
-
-      - name: Configure Grafana for monitoring
-        run: |
-          echo "Configuring Grafana to use Prometheus"
-          curl -X POST -u admin:admin 'http://localhost:3000/api/datasources' -H 'Content-Type: application/json' -d '{
-            "name": "Prometheus",
-            "type": "prometheus",
-            "access": "proxy",
-            "url": "http://localhost:9090",
-            "isDefault": true
-          }'
-
-      - name: Monitor Application
-        run: |
-          echo "Grafana is configured. Access it on http://localhost:3000"
-          echo "Monitoring application performance using Prometheus and Grafana."
+      - name: Rollback to previous deployment
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: ${{ secrets.MY_RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.MY_RENDER_API_KEY }}
+          wait-for-success: true
+          version-id: previous # This assumes a rollback mechanism using a previous deployment ID or commit hash
